@@ -1,0 +1,134 @@
+<!-- frontend/index.html - Complete CDN Solution -->
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oak Camera v3 Interface</title>
+    <meta name="description" content="Professional interface for Oak Camera v3 control over PoE" />
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        oak: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom component styles */
+        .slider {
+            background-color: #4b5563;
+            border-radius: 0.5rem;
+            appearance: none;
+            cursor: pointer;
+            height: 0.5rem;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: #0ea5e9;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: #0ea5e9;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 0;
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3);
+        }
+
+        .slider:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #374151;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        /* Animations */
+        @keyframes record-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        .recording-pulse {
+            animation: record-pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Focus styles for accessibility */
+        .focus\:ring-oak-500:focus {
+            --tw-ring-color: rgb(14 165 233 / 0.5);
+        }
+
+        .focus\:ring-offset-gray-900:focus {
+            --tw-ring-offset-color: #111827;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>

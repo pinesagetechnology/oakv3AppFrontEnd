@@ -1,0 +1,22 @@
+# API Configuration
+VITE_API_URL=http://localhost:8000/api
+VITE_WS_URL=ws://localhost:8000
+
+# Application Configuration
+VITE_APP_NAME=Oak Camera Interface
+VITE_APP_VERSION=1.0.0
+VITE_CAMERA_NAME=Oak Camera v3
+
+# Development Configuration
+VITE_DEBUG=true
+VITE_LOG_LEVEL=debug
+
+# Feature Flags
+VITE_ENABLE_ADVANCED_CONTROLS=true
+VITE_ENABLE_FILE_MANAGEMENT=true
+VITE_ENABLE_KEYBOARD_SHORTCUTS=true
+
+# Default Camera Settings
+VITE_DEFAULT_CAMERA_IP=192.168.1.100
+VITE_DEFAULT_FPS=30
+VITE_DEFAULT_RESOLUTION=1920x1440
