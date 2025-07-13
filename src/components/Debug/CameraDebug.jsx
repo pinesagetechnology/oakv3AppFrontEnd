@@ -1,237 +1,270 @@
 // frontend/src/components/Debug/CameraDebug.jsx
 import React, { useState } from 'react';
-import { Bug, Search, Wifi, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
-import Button from '../UI/Button';
-import Card from '../UI/Card';
-import Input from '../UI/Input';
+import { Card } from '../UI/Card';
+import { Button } from '../UI/Button';
+import { Input } from '../UI/Input';
+import { LoadingSpinner } from '../UI/LoadingSpinner';
+import { Badge } from '../UI/Badge';
+import { 
+    Wifi, 
+    WifiOff, 
+    AlertTriangle, 
+    CheckCircle, 
+    XCircle, 
+    Info,
+    Zap,
+    Network,
+    Server
+} from 'lucide-react';
 import api from '../../services/api';
 
-const CameraDebug = () => {
-    const [debugIP, setDebugIP] = useState('192.168.10.247');
-    const [debugResults, setDebugResults] = useState(null);
-    const [isDebugging, setIsDebugging] = useState(false);
-    const [discoveryResults, setDiscoveryResults] = useState(null);
-    const [isDiscovering, setIsDiscovering] = useState(false);
+export const CameraDebug = () => {
+    const [cameraIP, setCameraIP] = useState('192.168.10.247');
+    const [debugData, setDebugData] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const runDebug = async () => {
-        setIsDebugging(true);
-        try {
-            const response = await api.get(`/camera/debug/${debugIP}`);
-            setDebugResults(response.data);
-        } catch (error) {
-            setDebugResults({
-                error: error.message,
-                details: error.response?.data
-            });
+        if (!cameraIP.trim()) {
+            setError('Please enter a camera IP address');
+            return;
         }
-        setIsDebugging(false);
+
+        setIsLoading(true);
+        setError(null);
+        setDebugData(null);
+
+        try {
+            const response = await api.get(`/camera/debug/${cameraIP}`);
+            setDebugData(response.data);
+        } catch (err) {
+            setError(err.response?.data?.detail || 'Failed to run debug diagnostics');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const runDiscovery = async () => {
-        setIsDiscovering(true);
-        try {
-            const response = await api.get('/camera/discover');
-            setDiscoveryResults(response.data);
-        } catch (error) {
-            setDiscoveryResults({
-                error: error.message,
-                details: error.response?.data
-            });
-        }
-        setIsDiscovering(false);
+    const getStatusIcon = (success) => {
+        if (success === true) return <CheckCircle className="h-4 w-4 text-green-400" />;
+        if (success === false) return <XCircle className="h-4 w-4 text-red-400" />;
+        return <Info className="h-4 w-4 text-yellow-400" />;
     };
 
-    const getTestIcon = (test) => {
-        if (test.success === true) return <CheckCircle className="h-4 w-4 text-green-400" />;
-        if (test.success === false) return <XCircle className="h-4 w-4 text-red-400" />;
-        if (test.found === true) return <CheckCircle className="h-4 w-4 text-green-400" />;
-        if (test.found === false) return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
-        return <AlertTriangle className="h-4 w-4 text-gray-400" />;
+    const getStatusColor = (success) => {
+        if (success === true) return 'text-green-400';
+        if (success === false) return 'text-red-400';
+        return 'text-yellow-400';
     };
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            {/* Discovery Section */}
-            <Card title="Camera Discovery" icon={Search}>
+        <div className="space-y-6">
+            <Card>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                        <Server className="h-5 w-5 text-blue-400" />
+                        <h3 className="text-lg font-semibold text-gray-200">Camera Debug Diagnostics</h3>
+                    </div>
+                    <Badge variant="info">OAK Camera v3</Badge>
+                </div>
+
                 <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <p className="text-sm text-gray-400">
-                            Scan for all Oak cameras on the network
-                        </p>
+                    <div className="flex space-x-4">
+                        <Input
+                            label="Camera IP Address"
+                            value={cameraIP}
+                            onChange={(e) => setCameraIP(e.target.value)}
+                            placeholder="192.168.10.247"
+                            className="flex-1"
+                        />
                         <Button
-                            onClick={runDiscovery}
-                            loading={isDiscovering}
-                            icon={Search}
-                            variant="primary"
+                            onClick={runDebug}
+                            disabled={isLoading}
+                            className="mt-6"
                         >
-                            Discover Cameras
+                            {isLoading ? (
+                                <>
+                                    <LoadingSpinner className="h-4 w-4 mr-2" />
+                                    Running Tests...
+                                </>
+                            ) : (
+                                <>
+                                    <Network className="h-4 w-4 mr-2" />
+                                    Run Diagnostics
+                                </>
+                            )}
                         </Button>
                     </div>
 
-                    {discoveryResults && (
-                        <div className="bg-gray-700 p-4 rounded-lg">
-                            <h4 className="font-medium text-white mb-3">Discovery Results</h4>
-                            {discoveryResults.error ? (
-                                <div className="text-red-400 text-sm">
-                                    Error: {discoveryResults.error}
-                                </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    <div>
-                                        <span className="text-sm text-gray-400">PoE Cameras Found: </span>
-                                        <span className="text-white font-mono">
-                                            {discoveryResults.data?.cameras?.length || 0}
-                                        </span>
-                                    </div>
+                    {error && (
+                        <div className="p-4 bg-red-900 border border-red-700 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                                <AlertTriangle className="h-5 w-5 text-red-400" />
+                                <span className="text-red-200">{error}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </Card>
 
-                                    {discoveryResults.data?.cameras?.map((ip, index) => (
-                                        <div key={index} className="flex items-center space-x-2">
-                                            <Wifi className="h-4 w-4 text-green-400" />
-                                            <span className="font-mono text-green-400">{ip}</span>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() => setDebugIP(ip)}
-                                            >
-                                                Debug This IP
-                                            </Button>
+            {debugData && (
+                <div className="space-y-6">
+                    {/* Summary */}
+                    <Card>
+                        <h4 className="text-md font-semibold text-gray-200 mb-4 flex items-center">
+                            <Info className="h-4 w-4 mr-2" />
+                            Diagnostic Summary
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="flex items-center space-x-2">
+                                <Network className="h-4 w-4 text-blue-400" />
+                                <span className="text-gray-300">IP:</span>
+                                <span className="text-gray-200 font-mono">{debugData.ip_address}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Wifi className="h-4 w-4 text-green-400" />
+                                <span className="text-gray-300">Ping:</span>
+                                {getStatusIcon(debugData.tests?.ping?.success)}
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Zap className="h-4 w-4 text-yellow-400" />
+                                <span className="text-gray-300">Ports:</span>
+                                <span className="text-gray-200">
+                                    {Object.values(debugData.tests?.port_connectivity || {}).filter(p => p.success).length} open
+                                </span>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Test Results */}
+                    <Card>
+                        <h4 className="text-md font-semibold text-gray-200 mb-4">Test Results</h4>
+                        <div className="space-y-4">
+                            {/* Ping Test */}
+                            {debugData.tests?.ping && (
+                                <div className="border border-gray-700 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center space-x-2">
+                                            {getStatusIcon(debugData.tests.ping.success)}
+                                            <span className="font-medium text-gray-200">Ping Connectivity</span>
                                         </div>
-                                    ))}
-
-                                    {discoveryResults.data?.all_devices && (
-                                        <details className="mt-4">
-                                            <summary className="text-sm text-gray-400 cursor-pointer">
-                                                All Devices ({discoveryResults.data.all_devices.length})
-                                            </summary>
-                                            <pre className="text-xs bg-gray-800 p-2 rounded mt-2 overflow-auto">
-                                                {JSON.stringify(discoveryResults.data.all_devices, null, 2)}
-                                            </pre>
-                                        </details>
+                                        <Badge variant={debugData.tests.ping.success ? "success" : "error"}>
+                                            {debugData.tests.ping.success ? "Success" : "Failed"}
+                                        </Badge>
+                                    </div>
+                                    {debugData.tests.ping.output && (
+                                        <pre className="text-sm text-gray-400 bg-gray-800 p-2 rounded mt-2 overflow-x-auto">
+                                            {debugData.tests.ping.output}
+                                        </pre>
                                     )}
                                 </div>
                             )}
-                        </div>
-                    )}
-                </div>
-            </Card>
 
-            {/* Debug Section */}
-            <Card title="Camera Debug Diagnostics" icon={Bug}>
-                <div className="space-y-4">
-                    <Input
-                        label="Camera IP Address"
-                        value={debugIP}
-                        onChange={(e) => setDebugIP(e.target.value)}
-                        placeholder="192.168.10.247"
-                    />
-
-                    <Button
-                        onClick={runDebug}
-                        loading={isDebugging}
-                        icon={Bug}
-                        variant="primary"
-                        disabled={!debugIP}
-                    >
-                        Run Diagnostics
-                    </Button>
-
-                    {debugResults && (
-                        <div className="bg-gray-700 p-4 rounded-lg">
-                            <h4 className="font-medium text-white mb-4">
-                                Debug Results for {debugResults.ip_address}
-                            </h4>
-
-                            {debugResults.error ? (
-                                <div className="text-red-400">
-                                    Error: {debugResults.error}
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {/* Test Results */}
-                                    {Object.entries(debugResults.tests || {}).map(([testName, test]) => (
-                                        <div key={testName} className="border border-gray-600 rounded p-3">
-                                            <div className="flex items-center space-x-2 mb-2">
-                                                {getTestIcon(test)}
-                                                <span className="font-medium capitalize text-white">
-                                                    {testName.replace(/_/g, ' ')}
+                            {/* Port Connectivity */}
+                            {debugData.tests?.port_connectivity && (
+                                <div className="border border-gray-700 rounded-lg p-4">
+                                    <h5 className="font-medium text-gray-200 mb-3">Port Connectivity</h5>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {Object.entries(debugData.tests.port_connectivity).map(([port, result]) => (
+                                            <div key={port} className="flex items-center justify-between p-2 bg-gray-800 rounded">
+                                                <span className="text-sm text-gray-300 font-mono">
+                                                    {port.replace('port_', '')}
                                                 </span>
+                                                {getStatusIcon(result.success)}
                                             </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                                            <div className="text-sm">
-                                                {test.success === true && (
-                                                    <div className="text-green-400">✓ {test.message || 'Success'}</div>
-                                                )}
-                                                {test.success === false && (
-                                                    <div className="text-red-400">✗ {test.error || 'Failed'}</div>
-                                                )}
-                                                {test.found === true && (
-                                                    <div className="text-green-400">
-                                                        ✓ Device found: {test.name} (MX ID: {test.mxid})
-                                                        <br />State: {test.state}, Protocol: {test.protocol}
-                                                    </div>
-                                                )}
-                                                {test.found === false && (
-                                                    <div className="text-yellow-400">
-                                                        ⚠ Device not found in discovery
-                                                        {test.available_devices && (
-                                                            <div className="mt-1 text-xs">
-                                                                Available: {test.available_devices.join(', ')}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {test.output && (
-                                                    <div className="mt-2 text-xs bg-gray-800 p-2 rounded font-mono">
-                                                        {test.output}
-                                                    </div>
-                                                )}
-                                            </div>
+                            {/* Device Discovery */}
+                            {debugData.tests?.device_discovery && (
+                                <div className="border border-gray-700 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center space-x-2">
+                                            {getStatusIcon(debugData.tests.device_discovery.found)}
+                                            <span className="font-medium text-gray-200">DepthAI Device Discovery</span>
                                         </div>
-                                    ))}
+                                        <Badge variant={debugData.tests.device_discovery.found ? "success" : "error"}>
+                                            {debugData.tests.device_discovery.found ? "Found" : "Not Found"}
+                                        </Badge>
+                                    </div>
+                                    {debugData.tests.device_discovery.found && (
+                                        <div className="text-sm text-gray-400 space-y-1">
+                                            <div>Name: {debugData.tests.device_discovery.name}</div>
+                                            <div>MXID: {debugData.tests.device_discovery.mxid}</div>
+                                            <div>State: {debugData.tests.device_discovery.state}</div>
+                                            <div>Protocol: {debugData.tests.device_discovery.protocol}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* DepthAI Connection */}
+                            {debugData.tests?.depthai_connection && (
+                                <div className="border border-gray-700 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center space-x-2">
+                                            {getStatusIcon(debugData.tests.depthai_connection.success)}
+                                            <span className="font-medium text-gray-200">DepthAI Connection</span>
+                                        </div>
+                                        <Badge variant={debugData.tests.depthai_connection.success ? "success" : "error"}>
+                                            {debugData.tests.depthai_connection.success ? "Connected" : "Failed"}
+                                        </Badge>
+                                    </div>
+                                    {debugData.tests.depthai_connection.success && (
+                                        <div className="text-sm text-gray-400 space-y-1">
+                                            <div>Device: {debugData.tests.depthai_connection.device_name}</div>
+                                            <div>Platform: {debugData.tests.depthai_connection.platform}</div>
+                                        </div>
+                                    )}
+                                    {debugData.tests.depthai_connection.error && (
+                                        <div className="text-sm text-red-400 mt-2">
+                                            Error: {debugData.tests.depthai_connection.error}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Network Configuration */}
+                            {debugData.tests?.network_config && (
+                                <div className="border border-gray-700 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center space-x-2">
+                                            {getStatusIcon(debugData.tests.network_config.same_subnet)}
+                                            <span className="font-medium text-gray-200">Network Configuration</span>
+                                        </div>
+                                        <Badge variant={debugData.tests.network_config.same_subnet ? "success" : "warning"}>
+                                            {debugData.tests.network_config.same_subnet ? "Same Subnet" : "Different Subnet"}
+                                        </Badge>
+                                    </div>
+                                    <div className="text-sm text-gray-400">
+                                        <div className="mb-2">Local IPs: {debugData.tests.network_config.local_ips?.join(', ') || 'None'}</div>
+                                        <div>Interfaces: {debugData.tests.network_config.interfaces?.join(', ') || 'None'}</div>
+                                    </div>
                                 </div>
                             )}
                         </div>
+                    </Card>
+
+                    {/* Recommendations */}
+                    {debugData.recommendations && debugData.recommendations.length > 0 && (
+                        <Card>
+                            <h4 className="text-md font-semibold text-gray-200 mb-4 flex items-center">
+                                <AlertTriangle className="h-4 w-4 mr-2 text-yellow-400" />
+                                Recommendations
+                            </h4>
+                            <div className="space-y-2">
+                                {debugData.recommendations.map((rec, index) => (
+                                    <div key={index} className="flex items-start space-x-2 p-2 bg-yellow-900/20 border border-yellow-700/50 rounded">
+                                        <AlertTriangle className="h-4 w-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                                        <span className="text-sm text-yellow-200">{rec}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
                     )}
                 </div>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card title="Quick Actions">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <Button
-                        onClick={() => setDebugIP('192.168.10.247')}
-                        variant="outline"
-                        size="sm"
-                    >
-                        Test .247
-                    </Button>
-                    <Button
-                        onClick={() => setDebugIP('192.168.1.100')}
-                        variant="outline"
-                        size="sm"
-                    >
-                        Test .1.100
-                    </Button>
-                    <Button
-                        onClick={() => setDebugIP('192.168.0.100')}
-                        variant="outline"
-                        size="sm"
-                    >
-                        Test .0.100
-                    </Button>
-                    <Button
-                        onClick={runDiscovery}
-                        variant="outline"
-                        size="sm"
-                        icon={Search}
-                    >
-                        Auto-Find
-                    </Button>
-                </div>
-            </Card>
+            )}
         </div>
     );
 };
-
-export default CameraDebug;
