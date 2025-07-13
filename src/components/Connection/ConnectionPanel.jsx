@@ -158,7 +158,7 @@ const ConnectionPanel = () => {
                             value={inputIP}
                             onChange={handleIPChange}
                             onKeyPress={handleKeyPress}
-                            placeholder="192.168.1.100"
+                            placeholder="192.168.10.247"
                             error={ipError}
                             disabled={isConnecting}
                             helperText="Enter the IP address of your Oak Camera v3"

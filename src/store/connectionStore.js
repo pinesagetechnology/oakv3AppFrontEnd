@@ -11,7 +11,7 @@ export const useConnectionStore = create(
             isConnected: false,
             isConnecting: false,
             connectionStatus: 'Disconnected',
-            cameraIP: '192.168.1.100',
+            cameraIP: '192.168.10.247',
             lastConnectedAt: null,
             connectionError: null,
             discoveredCameras: [],

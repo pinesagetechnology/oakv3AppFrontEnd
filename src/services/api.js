@@ -1,3 +1,4 @@
+// frontend/src/services/api.js - Aligned with your backend API
 import axios from 'axios';
 
 const api = axios.create({
@@ -31,5 +32,52 @@ api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+// API Methods that match your backend exactly
+export const apiMethods = {
+    // System
+    getSystemStatus: () => api.get('/status'),
+    getHealth: () => api.get('/health'),
+
+    // Camera Connection
+    connectCamera: (ip_address, timeout = 10) =>
+        api.post('/camera/connect', { ip_address, timeout }),
+    disconnectCamera: () =>
+        api.post('/camera/disconnect'),
+    discoverCameras: () =>
+        api.get('/camera/discover'),
+
+    // Camera Settings
+    getCameraSettings: () =>
+        api.get('/camera/settings'),
+    updateCameraSettings: (settings) =>
+        api.put('/camera/settings', { settings }),
+
+    // Focus Control
+    triggerAutofocus: () =>
+        api.post('/camera/focus/trigger'),
+    setManualFocus: (position) =>
+        api.post(`/camera/focus/manual/${position}`),
+
+    // Recording
+    startRecording: (codec = 'h264', filename = null) =>
+        api.post('/recording/start', { codec, filename }),
+    stopRecording: () =>
+        api.post('/recording/stop'),
+
+    // Capture
+    captureImage: () =>
+        api.post('/capture'),
+
+    // File Management
+    getFiles: () =>
+        api.get('/files'),
+    deleteFile: (file_type, filename) =>
+        api.delete(`/files/${file_type}/${filename}`),
+    cleanupFiles: () =>
+        api.post('/files/cleanup'),
+    downloadFile: (file_type, filename) =>
+        `/api/download/${file_type}/${filename}`, // Returns URL for direct download
+};
 
 export default api;

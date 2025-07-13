@@ -1,3 +1,4 @@
+// frontend/src/services/websocket.js - Updated for your backend
 class WebSocketService {
     constructor() {
         this.ws = null;
@@ -16,6 +17,7 @@ class WebSocketService {
         }
 
         this.isConnecting = true;
+        // Use the exact WebSocket path your backend expects
         const wsUrl = url || (import.meta.env.VITE_WS_URL || 'ws://localhost:8000') + '/ws/control';
 
         console.log('Connecting to WebSocket:', wsUrl);
@@ -24,7 +26,7 @@ class WebSocketService {
             this.ws = new WebSocket(wsUrl);
 
             this.ws.onopen = () => {
-                console.log('WebSocket connected');
+                console.log('WebSocket connected to /ws/control');
                 this.isConnecting = false;
                 this.reconnectAttempts = 0;
                 this.emit('connected');
@@ -33,7 +35,7 @@ class WebSocketService {
             this.ws.onmessage = (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    console.log('WebSocket message:', data.type, data);
+                    console.log('WebSocket message received:', data.type, data);
                     this.emit('message', data);
                     this.emit(data.type, data);
                 } catch (error) {
@@ -71,6 +73,7 @@ class WebSocketService {
             return;
         }
 
+        // Use the exact stream WebSocket path your backend expects
         const wsUrl = (import.meta.env.VITE_WS_URL || 'ws://localhost:8000') + '/ws/stream';
         console.log('Connecting to stream WebSocket:', wsUrl);
 
@@ -78,7 +81,7 @@ class WebSocketService {
             this.streamWs = new WebSocket(wsUrl);
 
             this.streamWs.onopen = () => {
-                console.log('Stream WebSocket connected');
+                console.log('Stream WebSocket connected to /ws/stream');
                 this.emitStream('stream_connected');
             };
 
